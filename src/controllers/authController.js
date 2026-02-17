@@ -64,7 +64,13 @@ export const refreshAccessToken = async (req, res) => {
       maxAge: 15 * 60 * 1000,
     });
 
-    return sendSuccess(res, { message: "Access token refreshed" }, 200);
+    return sendSuccess(
+      res,
+      {
+        accessToken: newAccessToken,
+      },
+      200,
+    );
   } catch (error) {
     return sendError(res, "Server Error", 500, error);
   }
@@ -128,7 +134,15 @@ export const registerUser = async (req, res) => {
       createdAt: user.createdAt,
     };
 
-    return sendSuccess(res, userResponse, 201);
+    // we are sending accesstoken here also for socket handshake
+    return sendSuccess(
+      res,
+      {
+        user: userResponse,
+        accessToken,
+      },
+      201,
+    );
   } catch (error) {
     return sendError(res, "Server Error", 500, error);
   }
@@ -176,7 +190,15 @@ export const loginUser = async (req, res) => {
       role: user.role,
     };
 
-    return sendSuccess(res, userResponse, 200);
+    // we are sending accesstoken here also for socket handshake
+    return sendSuccess(
+      res,
+      {
+        user: userResponse,
+        accessToken,
+      },
+      200,
+    );
   } catch (error) {
     return sendError(res, "Server Error", 500, error);
   }
