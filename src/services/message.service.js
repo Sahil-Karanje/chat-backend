@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 
@@ -7,18 +8,16 @@ export const createMessageService = async ({
   conversationId,
   content,
 }) => {
-  let conversation;
+  let conversation = null;
 
-  // If conversationId provided
-  if (conversationId) {
+  // Only try findById if it's a real Mongo ObjectId (temp IDs like "temp-abc" will fail this)
+  if (conversationId && mongoose.Types.ObjectId.isValid(conversationId)) {
     conversation = await Conversation.findById(conversationId);
-    if (!conversation) {
-      throw new Error("Conversation not found");
-    }
-  } else {
-    if (!receiverId) {
-      throw new Error("Receiver required");
-    }
+  }
+
+  // If no conversation found (temp ID, invalid ID, or just not found), find or create one
+  if (!conversation) {
+    if (!receiverId) throw new Error("Receiver required to create a conversation");
 
     conversation = await Conversation.findOne({
       isGroup: false,
@@ -28,6 +27,7 @@ export const createMessageService = async ({
     if (!conversation) {
       conversation = await Conversation.create({
         participants: [senderId, receiverId],
+        isGroup: false,
       });
     }
   }
@@ -42,5 +42,10 @@ export const createMessageService = async ({
   conversation.lastMessage = message._id;
   await conversation.save();
 
-  return message;
+  // Return message with the real conversationId attached
+  // so the socket layer can emit it back to the frontend
+  return {
+    ...message.toObject(),
+    conversationId: conversation._id,
+  };
 };
