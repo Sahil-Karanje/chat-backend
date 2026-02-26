@@ -24,3 +24,20 @@ export const searchUsers = async (req, res) => {
   }
 };
 
+export const updateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return sendError(res, "User not found", 404);
+    }
+    const { bio, username, avatar } = req.body;
+    if (bio !== undefined) user.bio = bio;
+    if (avatar !== undefined) user.avatar = avatar;
+    if (username !== undefined) user.username = username;
+    await user.save();
+
+    return sendSuccess(res, user, 200);
+  } catch (error) {
+    return sendError(res, "Server Error", 500, error);
+  }
+};
