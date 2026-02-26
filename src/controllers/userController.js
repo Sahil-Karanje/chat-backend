@@ -23,3 +23,4 @@ export const searchUsers = async (req, res) => {
     return sendError(res, "Server Error", 500, error);
   }
 };
+
